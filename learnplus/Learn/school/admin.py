@@ -3,6 +3,7 @@ from . import models
 from django.utils.safestring import mark_safe
 
 # Register your models here.
+
 class CustomAdmin(admin.ModelAdmin):
     actions = ('activate','desactivate')
     list_filter = ('status',)
@@ -18,6 +19,16 @@ class CustomAdmin(admin.ModelAdmin):
         queryset.update(status=False)
         self.message_user(request,'la selection a été effectué avec succes')
     desactivate.short_description = "permet de desactiver le champs selectionner"
+
+class FiliereAdmin(CustomAdmin):
+    list_display = ('nom', 'status', 'date_add', 'date_update')
+    list_display_links = ['nom',]
+    search_fields = ('nom',)
+    ordering = ('nom',)
+    fieldsets = [
+                 ("info filière", {"fields": ["nom"]}),
+                 ("standard", {"fields": ["status"]})
+    ]
 
 
 class  MatiereAdmin(CustomAdmin):
@@ -80,6 +91,4 @@ _register(models.Niveau, NiveauAdmin)
 _register(models.Classe, ClasseAdmin)
 _register(models.Chapitre, ChapitreAdmin)
 _register(models.Cours, CoursAdmin)
-
-
-
+_register(models.Filiere, FiliereAdmin)

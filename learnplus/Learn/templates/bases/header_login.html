@@ -107,9 +107,11 @@
                                 var next = url.searchParams.get("next");
                                 console.log(next);
                                 if (next != ""){
-                                    window.location.replace(this.base_url + next);
+                                    window.location.replace(this.base_url + "/student");
+
                                 }else{
-                                window.location.replace(this.base_url + "/" + response.data.redirect);
+                                    location.reload();
+
                                 }
                             } else {
                                 this.error = true

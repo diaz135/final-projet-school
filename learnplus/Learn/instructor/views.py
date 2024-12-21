@@ -1,16 +1,22 @@
+# Django imports
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
+from django.utils.safestring import mark_safe
+from django.contrib.auth.models import User
+from django.contrib.auth import authenticate, login
+from django.db.models import Q
+
+# Project-specific imports
 from school import models as school_models
 from quiz import models as quiz_models
 from forum import models as forum_models
 from chat import models as chat_models
-from . import models
-from django.utils.safestring import mark_safe
-import json
-from django.http import JsonResponse 
-from django.db.models import Q
-from django.contrib.auth.models import User
-from django.contrib.auth import authenticate, login
+from instructor import models as instructor_models
+from school.models import Chapitre
+from instructor.models import AffectationMatiere
+from django.core.files.storage import FileSystemStorage
+
 
 # Create your views here.
 @login_required(login_url = 'login')
@@ -36,7 +42,6 @@ def dashboard(request):
             return redirect("/admin/")
     
  
-
 
 @login_required(login_url = 'login')
 def account_edit(request):
@@ -110,82 +115,140 @@ def account_edit(request):
 
 
 
-@login_required(login_url = 'login')
+@login_required(login_url='login')
 def course_add(request):
     if request.user.is_authenticated:
         try:
-            try:
-                print("1")
-                if request.user.student_user:
-                    return redirect('index_student') 
-            except Exception as e:
-                print(e)
-                print("2")
+            # Vérifiez si l'utilisateur est un étudiant
+            if hasattr(request.user, 'student_user'):
+                return redirect('index_student')
+            
+            # Vérifiez si l'utilisateur est un instructeur
+            if hasattr(request.user, 'instructor'):
+                instructor = request.user.instructor
 
-                if request.user.instructor:
-                    matiere = school_models.Matiere.objects.filter(status=True)
-                    datas = {
-                        'matiere':matiere,
-                    }
-                    return render(request,'pages/instructor-course-add.html',datas)
+                # Récupérer uniquement les matières attribuées
+                matieres_attribuees = AffectationMatiere.objects.filter(
+                    instructor=instructor
+                ).values_list('matiere', flat=True)
+
+                matieres = school_models.Matiere.objects.filter(id__in=matieres_attribuees, status=True)
+
+                # Si une requête POST est reçue
+                if request.method == 'POST':
+                    # Récupérer les données du formulaire
+                    titre = request.POST.get('titre')
+                    description = request.POST.get('description')
+                    matiere_id = request.POST.get('matiere')
+                    date_debut = request.POST.get('date_debut')
+                    date_fin = request.POST.get('date_fin')
+                    duree_en_heure = request.POST.get('duree_en_heure')
+                    image = request.FILES.get('image')
+
+                    # Sauvegarder l'image si elle existe
+                    if image:
+                        fs = FileSystemStorage()
+                        filename = fs.save(image.name, image)
+                        uploaded_image_url = fs.url(filename)
+
+                    # Créer un nouveau chapitre
+                    chapitre = school_models.Chapitre.objects.create(
+                        titre=titre,
+                        description=description,
+                        matiere_id=matiere_id,
+                        date_debut=date_debut,
+                        date_fin=date_fin,
+                        duree_en_heure=duree_en_heure,
+                        image=image  # ou utilisez uploaded_image_url si nécessaire
+                    )
+                    chapitre.save()
+
+                    return redirect('instructor-courses')
+
+                datas = {
+                    'matiere': matieres,
+                }
+                return render(request, 'pages/instructor-course-add.html', datas)
+
         except Exception as e:
-            print(e)
-            print("3")
+            print(f"Erreur dans la vue course_add : {e}")
             return redirect("/admin/")
 
 
 
-@login_required(login_url = 'login')
+@login_required(login_url='login')
 def course_edit(request, slug):
-    if request.user.is_authenticated:
-        try:
-            try:
-                print("1")
-                if request.user.student_user:
-                    return redirect('index_student')
-            except Exception as e:
-                print(e)
-                print("2")
+    try:
+        # Vérifiez si l'utilisateur est un étudiant
+        if hasattr(request.user, 'student_user'):
+            return redirect('index_student')
 
-                if request.user.instructor:
-                    matiere = school_models.Matiere.objects.filter(status=True)
-                    chapitre = school_models.Chapitre.objects.get(slug=slug)
+        # Vérifiez si l'utilisateur est un instructeur
+        if hasattr(request.user, 'instructor'):
+            instructor = request.user.instructor
+            
+            # Récupérer les matières attribuées à cet instructeur
+            matieres_attribuees = AffectationMatiere.objects.filter(
+                instructor=instructor
+            ).values_list('matiere', flat=True)
 
-                    datas = {
-                        'matiere':matiere,
-                        'chapitre':chapitre,
-                    }
-                    return render(request,'pages/instructor-course-edit.html',datas)
-        except Exception as e:
-            print(e)
-            print("3")
-            return redirect("/admin/")
+            # Vérifiez que le chapitre appartient bien à une matière attribuée
+            chapitre = get_object_or_404(
+                school_models.Chapitre,
+                slug=slug,
+                matiere__in=matieres_attribuees,
+                status=True
+            )
+
+            # Récupérez les matières attribuées (pour le formulaire)
+            matieres = school_models.Matiere.objects.filter(id__in=matieres_attribuees, status=True)
+
+            datas = {
+                'matiere': matieres,
+                'chapitre': chapitre,
+            }
+            return render(request, 'pages/instructor-course-edit.html', datas)
+
+    except school_models.Chapitre.DoesNotExist:
+        # Chapitre introuvable ou non autorisé
+        print(f"Le chapitre avec le slug {slug} n'existe pas ou n'est pas accessible.")
+        return redirect('instructor-courses')
+
+    except Exception as e:
+        print(f"Erreur dans la vue course_edit : {e}")
+        return redirect("/admin/")
 
 
-
-
-
-@login_required(login_url = 'login')
+@login_required(login_url='login')
 def courses(request):
-    if request.user.is_authenticated:
-        try:
-            try:
-                print("1")
-                if request.user.student_user:
-                    return redirect('index_student') 
-            except Exception as e:
-                print(e)
-                print("2")
-                if request.user.instructor:
-                    Chapitre = school_models.Chapitre.objects.filter(Q(status=True) & Q(classe=request.user.instructor.classe))
-                    datas = {
-                            'Chapitre' : Chapitre ,
-                           }
-                    return render(request,'pages/instructor-courses.html',datas)
-        except Exception as e:
-            print(e)
-            print("3")
-            return redirect("/admin/")
+    try:
+        # Vérifiez si l'utilisateur est un étudiant
+        if hasattr(request.user, 'student_user'):
+            return redirect('index_student')
+
+        # Vérifiez si l'utilisateur est un instructeur
+        if hasattr(request.user, 'instructor'):
+            instructor = request.user.instructor
+
+            # Récupérer les matières affectées à cet instructeur
+            matieres_attribuees = AffectationMatiere.objects.filter(
+                instructor=instructor
+            ).values_list('matiere', flat=True)
+
+            # Filtrer les chapitres par les matières attribuées
+            chapitres = Chapitre.objects.filter(
+                Q(status=True) & Q(matiere__in=matieres_attribuees)
+            )
+
+            # Préparer les données pour le template
+            datas = {
+                'Chapitre': chapitres,
+            }
+            return render(request, 'pages/instructor-courses.html', datas)
+
+    except Exception as e:
+        print(f"Erreur dans la vue courses : {e}")
+        return redirect("/admin/")
 
 
 

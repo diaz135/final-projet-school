@@ -4,46 +4,55 @@ from django.utils.safestring import mark_safe
 
 # Register your models here.
 class CustomAdmin(admin.ModelAdmin):
-    actions = ('activate','desactivate')
+    actions = ('activate', 'desactivate')
     list_filter = ('status',)
     list_per_page = 10
-    date_hierachy = "date_add"
+    date_hierarchy = "date_add"
 
-    def activate(self,request,queryset):
-        queryset.update(status=True)
-        self.message_user(request,'la selection a été effectué avec succes')
-    activate.short_description = "permet d'activer le champs selectionner"
+    def activate(self, request, queryset):
+        if queryset.exists():
+            queryset.update(status=True)
+            self.message_user(request, 'La sélection a été activée avec succès.')
+        else:
+            self.message_user(request, 'Aucune sélection à activer.', level='error')
+    activate.short_description = "Activer les éléments sélectionnés"
 
-    def desactivate(self,request,queryset):  
-        queryset.update(status=False)
-        self.message_user(request,'la selection a été effectué avec succes')
-    desactivate.short_description = "permet de desactiver le champs selectionner"
+    def desactivate(self, request, queryset):
+        if queryset.exists():
+            queryset.update(status=False)
+            self.message_user(request, 'La sélection a été désactivée avec succès.')
+        else:
+            self.message_user(request, 'Aucune sélection à désactiver.', level='error')
+    desactivate.short_description = "Désactiver les éléments sélectionnés"
 
 class StudentAdmin(CustomAdmin):
-    list_display = ('user','classe','image_view','status')
-    list_display_links = ['user',]
-    search_fields = ('user',)
+    list_display = ('user', 'classe', 'image_view', 'status')
+    list_display_links = ['user']
+    search_fields = ('user__username',)
     ordering = ('user',)
     fieldsets = [
-                 ("info éléve",{"fields":["user","classe","photo"]}),
-                 ("standard",{"fields":["status"]})
+        ("Informations sur l'élève", {"fields": ["user", "classe", "photo"]}),
+        ("Statut", {"fields": ["status"]}),
     ]
-    def image_view(self,obj):
-        return mark_safe("<img src ='{url}' width='100px',height='50px'>".format(url=obj.photo.url))
+
+    def image_view(self, obj):
+        if obj.photo and hasattr(obj.photo, 'url'):
+            return mark_safe(f"<img src='{obj.photo.url}' width='100px' height='50px'>")
+        return "Pas d'image"
+    image_view.short_description = "Photo"
 
 class StudentReponseAdmin(CustomAdmin):
-    list_display = ('student','status')
-    list_display_links = ['student',]
-    search_fields = ('student',)
+    list_display = ('student', 'response_text', 'status')
+    list_display_links = ['student']
+    search_fields = ('student__user__username',)
     ordering = ('student',)
     fieldsets = [
-                 ("info éléve reponse",{"fields":["student","question","reponse"]}),
-                 ("standard",{"fields":["status"]})
+        ("Informations sur la réponse", {"fields": ["student", "response_text"]}),
+        ("Statut", {"fields": ["status"]}),
     ]
 
-def _register(model,admin_class):
-    admin.site.register(model,admin_class)
-
+def _register(model, admin_class):
+    admin.site.register(model, admin_class)
 
 _register(models.Student, StudentAdmin)
 _register(models.StudentReponse, StudentReponseAdmin)

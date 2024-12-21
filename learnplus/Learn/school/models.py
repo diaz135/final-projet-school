@@ -2,22 +2,19 @@ from django.db import models
 from django.utils.text import slugify
 from datetime import datetime
 
-
-
 # Create your models here.
-# class Filiere(models.Model):
-#     nom = models.CharField(max_length=255)
-#     date_add = models.DateTimeField(auto_now_add=True)
-#     date_update = models.DateTimeField(auto_now=True)
-#     status = models.BooleanField(default=True)
+class Filiere(models.Model):
+    nom = models.CharField(max_length=255)
+    date_add = models.DateTimeField(auto_now_add=True)
+    date_update = models.DateTimeField(auto_now=True)
+    status = models.BooleanField(default=True)
 
+    class Meta:
+        verbose_name = 'Filiere'
+        verbose_name_plural = 'Filieres'
 
-#     class Meta:
-#         verbose_name = 'Filiere'
-#         verbose_name_plural = 'Filieres'
-
-#     def __str__(self):
-#         return self.nom
+    def str(self):
+        return self.nom
 
 class Matiere(models.Model):
     nom = models.CharField(max_length=255)
@@ -38,7 +35,7 @@ class Matiere(models.Model):
         verbose_name = 'Matiere'
         verbose_name_plural = 'Matieres'
 
-    def __str__(self):
+    def str(self):
         return self.nom
 
 class Niveau(models.Model):
@@ -57,13 +54,13 @@ class Niveau(models.Model):
         verbose_name = 'Niveau'
         verbose_name_plural = 'Niveaux'
 
-    def __str__(self):
+    def str(self):
         return self.nom
 
 class Classe(models.Model):
     niveau = models.ForeignKey(Niveau,on_delete=models.CASCADE,related_name='classe_niveau')
     numeroClasse = models.IntegerField()
-    # filiere = models.ForeignKey(Filiere,on_delete=models.CASCADE,related_name='classe_filiere',null=True)
+    filiere = models.ForeignKey(Filiere,on_delete=models.CASCADE,related_name='classe_filiere',null=True)
     date_add = models.DateTimeField(auto_now_add=True)
     date_update = models.DateTimeField(auto_now=True)
     status = models.BooleanField(default=True)
@@ -74,7 +71,7 @@ class Classe(models.Model):
         verbose_name = 'Classe'
         verbose_name_plural = 'Classes'
 
-    def __str__(self):
+    def str(self):
         return (str(self.niveau.nom)+ " "+ str(self.numeroClasse))
  
 class Chapitre(models.Model):
@@ -102,7 +99,7 @@ class Chapitre(models.Model):
         verbose_name = 'Chapitre'
         verbose_name_plural = 'Chapitres'
 
-    def __str__(self):
+    def str(self):
         return self.titre
 
 
@@ -125,10 +122,7 @@ class Cours(models.Model):
 
     class Meta:
         verbose_name = 'Cours'
-        verbose_name_plural = 'Courss'
+        verbose_name_plural = 'Cours'
 
-    def __str__(self):
+    def str(self):
         return self.titre
-
-
-

@@ -21,14 +21,6 @@
                 </div>
                 <div class="card-body"  id="login">
 
-                    <a href="student-dashboard.html" class="btn btn-light btn-block">
-                        <span class="fab fa-google mr-2"></span>
-                        Continue with Google
-                    </a>
-
-                    <div class="page-separator">
-                        <div class="page-separator__text">or</div>
-                    </div>
                     
                     <form action="http://learnplus-bootstrap.frontendmatter.com/student-dashboard.html" novalidate method="get"> 
                         {% csrf_token %}
@@ -70,11 +62,13 @@
                     </form>
                 </div>
                 <div class="card-footer text-center text-black-50">
-                    Not yet a student? <a href="{% url 'guests_signup' %}">Sign Up</a>
+                    don't have an account? please contact the administratord
                 </div>
             </div>
         </div>
     </div>
 {% endblock content %}
+
+
 
  

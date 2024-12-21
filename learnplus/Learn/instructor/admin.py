@@ -1,38 +1,59 @@
 from django.contrib import admin
-from . import models
 from django.utils.safestring import mark_safe
+from .models import Instructor, AffectationMatiere
 
-# Register your models here.
+
 class CustomAdmin(admin.ModelAdmin):
-    actions = ('activate','desactivate')
-    list_filter = ('status',)
-    list_per_page = 6
-    date_hierachy = "date_add"
+    """
+    Base admin class pour les fonctionnalités réutilisables.
+    """
+    actions = ['activate', 'deactivate']
 
-    def activate(self,request,queryset):
+    def activate(self, request, queryset):
         queryset.update(status=True)
-        self.message_user(request,'la selection a été effectué avec succes')
-    activate.short_description = "permet d'activer le champs selectionner"
+        self.message_user(request, 'Les éléments sélectionnés ont été activés avec succès.')
+    activate.short_description = "Activer les éléments sélectionnés"
 
-    def desactivate(self,request,queryset):  
+    def deactivate(self, request, queryset):
         queryset.update(status=False)
-        self.message_user(request,'la selection a été effectué avec succes')
-    desactivate.short_description = "permet de desactiver le champs selectionner"
+        self.message_user(request, 'Les éléments sélectionnés ont été désactivés avec succès.')
+    deactivate.short_description = "Désactiver les éléments sélectionnés"
 
+
+@admin.register(Instructor)
 class InstructorAdmin(CustomAdmin):
-    list_display = ('user','contact','adresse','image_view','classe','status')
-    search_fields = ('user',)
+    list_display = ('user', 'contact', 'adresse', 'image_view', 'classe', 'matieres_list', 'status')
+    search_fields = ('user__username', 'contact', 'adresse')
     ordering = ['user']
-    list_display_links =['user']
+    list_display_links = ['user']
+    list_filter = ('classe', 'status')
     fieldsets = [
-                 ("info instructeur",{"fields":["user","contact","adresse","classe","photo"]}),
-                 ("standard",{"fields":["status"]})
+        ("Informations sur l'instructeur", {"fields": ["user", "contact", "adresse", "classe", "photo", "matieres"]}),
+        ("Statut", {"fields": ["status"]}),
     ]
-    def image_view(self,obj):
-        return mark_safe("<img src ='{url}' width='100px',height='50px'>".format(url=obj.photo.url))
 
-def _register(model,admin_class):
-    admin.site.register(model,admin_class)
+    def image_view(self, obj):
+        """
+        Affiche une image dans l'admin si disponible.
+        """
+        if obj.photo:
+            return mark_safe(f"<img src='{obj.photo.url}' width='100px' height='50px'>")
+        return "Pas d'image"
+
+    image_view.short_description = "Photo"
+
+    def matieres_list(self, obj):
+        """
+        Affiche une liste des matières attribuées à l'instructeur.
+        """
+        return ", ".join([matiere.nom for matiere in obj.matieres.all()])
+
+    matieres_list.short_description = "Matières"
 
 
-_register(models.Instructor, InstructorAdmin)
+@admin.register(AffectationMatiere)
+class AffectationMatiereAdmin(CustomAdmin):
+    list_display = ('instructor', 'matiere', 'date_add', 'date_update')
+    search_fields = ('instructor__user__username', 'matiere__nom')
+    list_filter = ('date_add', 'date_update')
+    ordering = ['instructor', 'matiere']
