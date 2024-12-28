@@ -1,0 +1,90 @@
+{% extends 'bases/header_instructor.html' %}
+{% block content %}
+
+<div class="mdk-drawer-layout__content page ">
+
+    <div class="container-fluid page__container">
+        <div class="row m-0">
+            <div class="col-lg container-fluid page__container">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Home</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'forum' %}">Forum</a></li>
+                    <li class="breadcrumb-item active">Ask Question</li>
+                </ol>
+                <h1 class="h2">Ask Question</h1>
+
+                <!-- Formulaire pour poser une question -->
+                <form method="post" action="{% url 'creer_sujet' %}">
+                    {% csrf_token %}
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="form-group m-0" role="group" aria-labelledby="label-question">
+                                <div class="form-row align-items-center">
+                                    <label id="label-question" for="titre" class="col-md-3 col-form-label form-label">Question title</label>
+                                    <div class="col-md-9">
+                                        <input id="titre" name="titre" type="text" placeholder="Your question ..." class="form-control">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="list-group list-group-fit">
+                            <div class="list-group-item">
+                                <div role="group" aria-labelledby="label-details" class="m-0 form-group">
+                                    <div class="form-row">
+                                        <label id="label-details" for="question" class="col-md-3 col-form-label form-label">Question details</label>
+                                        <div class="col-md-9">
+                                            <textarea id="question" name="question" placeholder="Describe your question in detail ..." rows="4" class="form-control"></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="list-group-item">
+                                <div class="form-group m-0" role="group" aria-labelledby="label-topic">
+                                    <div class="form-row align-items-center">
+                                        <label id="label-topic" for="topic" class="col-md-3 col-form-label form-label">Topic</label>
+                                        <div class="col-md-9">
+                                            <select id="topic" name="cours_id" class="form-control custom-select w-auto">
+                                                <option value="1">JavaScript</option>
+                                                <!-- Ajoutez d'autres options si nécessaire -->
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="list-group-item">
+                                <div class="custom-control custom-checkbox custom-control-inline">
+                                    <input id="notify" type="checkbox" name="notify" class="custom-control-input" checked="">
+                                    <label for="notify" class="custom-control-label">Notify me on email when someone replies to my question</label>
+                                </div>
+                                <small id="description-notify" class="form-text text-muted">If unchecked, you'll still recieve notifications on our website.</small>
+                            </div>
+                            <div class="list-group-item">
+                                <button type="submit" class="btn btn-success">Post Question</button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+
+            </div>
+            <div id="page-nav" class="col-lg-auto page-nav">
+                <div data-perfect-scrollbar data-perfect-scrollbar-wheel-propagation="true">
+                    <div class="page-section pt-lg-32pt">
+                        <div class="nav page-nav__menu">
+                            <a href="javascript:void(0)" class="nav-link active">Before you post</a>
+                        </div>
+                        <div class="page-nav__content">
+                            <p class="text-black-70">There may be other students who have asked the same question before.</p>
+                            <p class="text-black-70">You should do a quick search first to make sure your question is unique.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+{% endblock content %}

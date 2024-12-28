@@ -1,0 +1,133 @@
+{% extends 'bases/student_header.html' %}
+{% block content %}
+<div class="mdk-drawer-layout js-mdk-drawer-layout" data-push data-responsive-width="992px">
+    <div class="mdk-drawer-layout__content page">
+        <div class="container-fluid page__container">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'index_student' %}">Home</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'quiz-list' %}">Quiz</a></li>
+                <li class="breadcrumb-item active">{{ quiz.titre }}</li>
+            </ol>
+            
+            <div class="card-group">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <h4 class="mb-0"><strong>{{ total_questions }}</strong></h4>
+                        <small class="text-muted-light">TOTAL</small>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-body text-center">
+                        <h4 class="text-success mb-0"><strong id="correct-answers">0</strong></h4>
+                        <small class="text-muted-light">CORRECT</small>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-body text-center">
+                        <h4 class="text-danger mb-0"><strong id="wrong-answers">0</strong></h4>
+                        <small class="text-muted-light">WRONG</small>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-body text-center">
+                        <h4 class="text-primary mb-0"><strong id="remaining">{{ total_questions }}</strong></h4>
+                        <small class="text-muted-light">LEFT</small>
+                    </div>
+                </div>
+            </div>
+
+            {% for question in questions %}
+            <div class="card question-card" id="question-{{ forloop.counter }}" {% if not forloop.first %}style="display: none;"{% endif %}>
+                <div class="card-header">
+                    <div class="media align-items-center">
+                        <div class="media-left">
+                            <h4 class="mb-0"><strong>#{{ forloop.counter }}</strong></h4>
+                        </div>
+                        <div class="media-body">
+                            <h4 class="card-title">{{ question.question }}</h4>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% for reponse in question.question_reponse.all %}
+                    <div class="form-group">
+                        <div class="custom-control custom-checkbox">
+                            <input id="answer-{{ forloop.parentloop.counter }}-{{ forloop.counter }}" 
+                                  type="checkbox" 
+                                  class="custom-control-input"
+                                  data-correct="{{ reponse.is_True }}">
+                            <label for="answer-{{ forloop.parentloop.counter }}-{{ forloop.counter }}" 
+                                   class="custom-control-label">{{ reponse.reponse }}</label>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                <div class="card-footer">
+                    <button class="btn btn-white skip-question">Skip</button>
+                    <button class="btn btn-success float-right submit-answer">
+                        Submit <i class="material-icons btn__icon--right">send</i>
+                    </button>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block script %}
+<script>
+// Add JavaScript for handling quiz functionality
+document.addEventListener('DOMContentLoaded', function() {
+    let currentQuestion = 1;
+    const totalQuestions = {{ total_questions }};
+    let correctAnswers = 0;
+    let wrongAnswers = 0;
+    
+    function updateStats() {
+        document.getElementById('correct-answers').textContent = correctAnswers;
+        document.getElementById('wrong-answers').textContent = wrongAnswers;
+        document.getElementById('remaining').textContent = totalQuestions - (correctAnswers + wrongAnswers);
+    }
+    
+    function showNextQuestion() {
+        if (currentQuestion < totalQuestions) {
+            document.getElementById(question-${currentQuestion}).style.display = 'none';
+            currentQuestion++;
+            document.getElementById(question-${currentQuestion}).style.display = 'block';
+        } else {
+            // Quiz completed - redirect to results
+            window.location.href = "{% url 'quiz-results' %}";
+        }
+    }
+    
+    // Add event listeners for submit and skip buttons
+    document.querySelectorAll('.submit-answer').forEach(button => {
+        button.addEventListener('click', function() {
+            const questionCard = this.closest('.question-card');
+            const checkboxes = questionCard.querySelectorAll('input[type="checkbox"]:checked');
+            let isCorrect = true;
+            
+            checkboxes.forEach(checkbox => {
+                if (checkbox.dataset.correct !== "True") {
+                    isCorrect = false;
+                }
+            });
+            
+            if (isCorrect) {
+                correctAnswers++;
+            } else {
+                wrongAnswers++;
+            }
+            
+            updateStats();
+            showNextQuestion();
+        });
+    });
+    
+    document.querySelectorAll('.skip-question').forEach(button => {
+        button.addEventListener('click', showNextQuestion);
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,110 @@
+{% extends 'bases/header_instructor.html' %}
+
+{% block content %}
+<div class="container-fluid page__container">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Home</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'instructor-quizzes' %}">Quiz Manager</a></li>
+        <li class="breadcrumb-item active">Edit Quiz</li>
+    </ol>
+
+    <h1 class="h2">Edit Quiz: {{ quiz.titre }}</h1>
+
+    <!-- Formulaire d'édition du quiz -->
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="card">
+            <div class="card-header">
+                <h4 class="card-title">Basic</h4>
+            </div>
+            <div class="card-body">
+                <div class="form-group row">
+                    <label for="quiz_title" class="col-sm-3 col-form-label form-label">Quiz Title:</label>
+                    <div class="col-sm-9">
+                        <input id="quiz_title" name="titre" type="text" class="form-control" value="{{ quiz.titre }}">
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="course_title" class="col-sm-3 col-form-label form-label">Course:</label>
+                    <div class="col-sm-9 col-md-4">
+                        <select id="course_title" class="custom-select form-control">
+                            {% for ma in matiere %}
+                                <option value="{{ ma.id }}">{{ ma.nom }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="quiz_image" class="col-sm-3 col-form-label form-label">Quiz Image:</label>
+                    <div class="col-sm-9">
+                        <p>
+                            <!-- Image préexistante -->
+                            <img id="image-preview" src="{{ quiz.image.url }}" alt="{{ quiz.titre }}" width="150" class="rounded">
+                        </p>
+                        <div class="custom-file">
+                            <input type="file" id="quiz_image" name="image" class="custom-file-input" onchange="previewImage(event)">
+                            <label for="quiz_image" class="custom-file-label">Choose file</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group row mb-0">
+                    <div class="col-sm-9 offset-sm-3">
+                        <button type="submit" class="btn btn-success">Save</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+
+    <!-- Liste des questions associées -->
+    <div class="card mt-4">
+        <div class="card-header">
+            <h4 class="card-title">Questions</h4>
+            <a href="{% url 'instructor-add_question' quiz.id %}" class="btn btn-outline-secondary float-right">
+                Add Question <i class="material-icons">add</i>
+            </a>
+        </div>
+        <div class="card-body">
+            <ul class="list-group list-group-fit">
+                {% for question in questions %}
+                <li class="list-group-item">
+                    <div class="media align-items-center">
+                        <div class="media-body">
+                            {{ question.title }}
+                            <p class="text-muted mb-0">Score: {{ question.score }}</p>
+                        </div>
+                        <div class="media-right">
+                            <a href="" class="btn btn-primary btn-sm">
+                                Edit
+                            </a>
+                        </div>
+                    </div>
+                </li>
+                {% empty %}
+                <p class="text-muted">No questions added yet.</p>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock content %}
+
+{% block script %}
+<script>
+    /**
+     * Prévisualisation de l'image sélectionnée
+     */
+    function previewImage(event) {
+        const input = event.target; // Champ input de type file
+        const preview = document.getElementById('image-preview'); // Élément <img> pour la prévisualisation
+
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                preview.src = e.target.result; // Mise à jour de la source de l'image
+            };
+            reader.readAsDataURL(input.files[0]); // Lire le fichier comme URL de données
+        }
+    }
+</script>
+{% endblock script %}

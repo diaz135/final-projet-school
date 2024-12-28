@@ -1,0 +1,10 @@
+[flake8]
+max-line-length = 120
+ignore =
+    E231,  # Espace manquant après la virgule
+    W292,  # Pas de nouvelle ligne en fin de fichier
+    F401,  # Import inutilisé
+exclude =
+    .git,
+    __pycache__,
+    venv/

@@ -1,0 +1,84 @@
+{% extends 'bases/student_header.html' %}
+{% load static %}
+{% block content %}
+<div class="page">
+    <div class="container page__container">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'index_student' %}">Home</a></li>
+            <li class="breadcrumb-item active">Quiz Results</li>
+        </ol>
+
+        {% if result %}
+        <div class="media mb-headings align-items-center">
+            <div class="media-left">
+                <img src="{% static 'assets/images/quiz.png' %}" alt="Quiz Image" width="80" class="rounded">
+            </div>
+            <div class="media-body">
+                <h1 class="h2">{{ result.quiz.titre }}</h1>
+                <p class="text-muted">Submitted on {{ result.completed_at|date:"d M Y, H:i" }}</p>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h4 class="card-title">Result Summary</h4>
+            </div>
+            <div class="card-body media align-items-center">
+                <div class="media-body">
+                    <h4 class="mb-0">{{ result.score|floatformat:2 }}%</h4>
+                    <span class="text-muted-light">
+                        {{ result.correct_answers }} out of {{ result.total_questions }} questions correct
+                    </span>
+                </div>
+                <div class="media-right">
+                    <a href="{% url 'take-quiz' result.quiz.slug %}" class="btn btn-primary">
+                        Retry Quiz <i class="material-icons btn__icon--right">refresh</i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h4 class="card-title">Detailed Questions</h4>
+            </div>
+            <ul class="list-group list-group-fit mb-0">
+                {% for response in responses %}
+                <li class="list-group-item">
+                    <div class="media">
+                        <div class="media-left">
+                            <div class="text-muted-light">{{ forloop.counter }}.</div>
+                        </div>
+                        <div class="media-body">
+                            <strong>{{ response.question.question }}</strong>
+                            <p class="text-muted">
+                                Your Answer: {{ response.selected_answer }}
+                            </p>
+                        </div>
+                        <div class="media-right">
+                            {% if response.is_correct %}
+                                <span class="badge badge-success">Correct</span>
+                            {% else %}
+                                <span class="badge badge-danger">Incorrect</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% else %}
+        <div class="alert alert-warning">
+            <h4 class="alert-heading">No Results Found</h4>
+            <p>You don't have any results to display. Complete a quiz to see your results here.</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="container page__container">
+        <div class="footer">
+            Copyright &copy; 2024 - <a href="#">Your Application</a>
+        </div>
+    </div>
+</div>
+{% endblock content %}

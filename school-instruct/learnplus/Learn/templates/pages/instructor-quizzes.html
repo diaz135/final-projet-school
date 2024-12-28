@@ -1,0 +1,53 @@
+{% extends 'bases/header_instructor.html' %}
+
+{% block content %}
+<div class="container-fluid page__container">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Home</a></li>
+        <li class="breadcrumb-item active">My Quizzes</li>
+    </ol>
+
+    <div class="media align-items-center mb-headings">
+        <div class="media-body">
+            <h1 class="h2">My Quizzes</h1>
+        </div>
+        <div class="media-right">
+            <a href="{% url 'instructor-quiz-add' %}" class="btn btn-success">Add Quiz</a>
+        </div>
+    </div>
+
+    {% if quizzes %}
+    <div class="card-columns">
+        {% for quiz in quizzes %}
+        <div class="card card-sm">
+            <div class="card-body media">
+                <div class="media-left">
+                    <a href="{% url 'instructor-add_question' quiz.id %}" class="avatar avatar-lg avatar-4by3">
+                        {% if quiz.image %}
+                        <img src="{{ quiz.image.url }}" alt="{{ quiz.titre }}" class="avatar-img rounded">
+                        {% else %}
+                        <img src="/static/assets/images/default_quiz.png" alt="Default image" class="avatar-img rounded">
+                        {% endif %}
+                    </a>
+                </div>
+                <div class="media-body">
+                    <h4 class="card-title mb-0">
+                        <a href="{% url 'instructor-add_question' quiz.id %}">{{ quiz.titre }}</a>
+                    </h4>
+                    <small class="text-muted">Created on {{ quiz.date_add|date:"d M Y" }}</small>
+                </div>
+            </div>
+            <div class="card-footer text-center">
+                <a href="{% url 'instructor-add_question' quiz.id %}" class="btn btn-white btn-sm">
+                    Add Questions
+                </a>
+                <a href="{% url 'instructor-quiz-edit' quiz.id %}" class="btn btn-primary btn-sm">Edit</a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p class="text-muted text-center">You haven't created any quizzes yet. <a href="{% url 'instructor-quiz-add' %}">Create your first quiz</a>.</p>
+    {% endif %}
+</div>
+{% endblock content %}

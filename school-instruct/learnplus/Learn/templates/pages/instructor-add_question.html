@@ -1,0 +1,150 @@
+{% extends 'bases/header_instructor.html' %}
+{% block content %}
+<div class="container mt-5">
+    <h2 class="text-center mb-4">Ajouter une Nouvelle Question</h2>
+    <form action="" method="POST">
+        {% csrf_token %}
+        
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <!-- Titre -->
+                <div class="form-group row">
+                    <label for="qtitle" class="col-form-label col-md-3">Titre :</label>
+                    <div class="col-md-9">
+                        <input id="qtitle" type="text" class="form-control" name="title" required>
+                    </div>
+                </div>
+                
+                <!-- Type -->
+                <div class="form-group row">
+                    <label for="type" class="col-form-label col-md-3">Type :</label>
+                    <div class="col-md-9">
+                        <select id="type" class="custom-control custom-select form-control" name="type" required>
+                            <option value="qcm">QCM</option>
+                            <option value="question-reponse">Question-Réponse</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <!-- Section pour les réponses -->
+                <div id="answer-section">
+                    <!-- Réponses pour le type QCM -->
+                    <div id="qcm-container" style="display: none;">
+                        <label class="form-label">Réponses :</label>
+                        <div id="answer-container" class="mb-3"></div>
+                        <button type="button" class="btn btn-outline-primary" id="add-answer">
+                            <i class="material-icons">add</i> Ajouter une réponse
+                        </button>
+                    </div>
+                    
+                    <!-- Réponse pour le type Question-Réponse -->
+                    <div id="text-response-container" style="display: none;">
+                        <label for="correct-answer" class="form-label">Réponse correcte :</label>
+                        <input type="text" id="correct-answer" name="correct_answer" class="form-control" placeholder="Entrez la réponse correcte">
+                    </div>
+                </div>
+                
+                <!-- Timeframe -->
+                <div class="form-group row">
+                    <label for="timeframe-checkbox" class="col-form-label col-md-3">Timeframe :</label>
+                    <div class="col-md-9">
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" id="timeframe-checkbox" name="timeframe_enabled">
+                            <label class="form-check-label" for="timeframe-checkbox">Activer la période de temps</label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section Timeframe -->
+                <div id="timeframe-section" style="display: none;">
+                    <div class="form-group row">
+                        <label for="timeframe-duration" class="col-form-label col-md-3">Durée :</label>
+                        <div class="col-md-4">
+                            <input type="number" id="timeframe-duration" class="form-control" name="timeframe_duration" placeholder="Durée" min="1">
+                        </div>
+                        <div class="col-md-4">
+                            <select id="timeframe-unit" class="form-control" name="timeframe_unit">
+                                <option value="hour" selected>Heures</option>
+                                <option value="minute">Minutes</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Score -->
+                <div class="form-group row">
+                    <label for="score" class="col-form-label col-md-3">Score :</label>
+                    <div class="col-md-9">
+                        <input id="score" type="number" name="score" value="50" min="0" max="100" step="5" class="form-control" required>
+                    </div>
+                </div>
+                
+                <!-- Bouton soumettre -->
+                <div class="form-group row mb-0">
+                    <div class="col-md-9 offset-md-3">
+                        <button type="submit" class="btn btn-success">Enregistrer</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+    // Gestion de l'affichage des champs en fonction du type de question
+    document.getElementById('type').addEventListener('change', function () {
+        const qcmContainer = document.getElementById('qcm-container');
+        const textResponseContainer = document.getElementById('text-response-container');
+        const answerContainer = document.getElementById('answer-container');
+        
+        if (this.value === 'qcm') {
+            qcmContainer.style.display = 'block';
+            textResponseContainer.style.display = 'none';
+            answerContainer.innerHTML = ''; // Réinitialise les réponses
+        } else if (this.value === 'question-reponse') {
+            qcmContainer.style.display = 'none';
+            textResponseContainer.style.display = 'block';
+        }
+    });
+
+    // Ajout et suppression dynamique des réponses pour QCM
+    document.getElementById('add-answer').addEventListener('click', function (e) {
+        e.preventDefault();
+        const answerContainer = document.getElementById('answer-container');
+        const answerCount = answerContainer.childElementCount;
+
+        const answerDiv = document.createElement('div');
+        answerDiv.className = 'form-group row answer-row';
+        answerDiv.innerHTML = ` 
+            <div class="col-md-7">
+                <input type="text" name="answers[]" class="form-control mb-2" placeholder="Réponse ${answerCount + 1}" required>
+            </div>
+            <div class="col-md-3">
+                <label class="form-check-label">
+                    <input type="checkbox" name="correct_answers[]" value="${answerCount}" class="form-check-input">
+                    Correcte
+                </label>
+            </div>
+            <div class="col-md-2">
+                <button type="button" class="btn btn-danger btn-sm remove-answer"><i class="material-icons">remove</i></button>
+            </div>
+        `;
+        answerContainer.appendChild(answerDiv);
+
+        // Gestion de la suppression des réponses
+        answerDiv.querySelector('.remove-answer').addEventListener('click', function () {
+            answerContainer.removeChild(answerDiv);
+        });
+    });
+
+    // Affichage dynamique de la section Timeframe
+    document.getElementById('timeframe-checkbox').addEventListener('change', function () {
+        const timeframeSection = document.getElementById('timeframe-section');
+        if (this.checked) {
+            timeframeSection.style.display = 'block';
+        } else {
+            timeframeSection.style.display = 'none';
+        }
+    });
+</script>
+{% endblock %}

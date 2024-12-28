@@ -1,0 +1,81 @@
+{% extends 'bases/student_header.html' %}
+
+{% block content %}
+<div class="page ">
+
+    <div class="container page__container">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'index_student' %}">Home</a></li>
+            <li class="breadcrumb-item active">Quiz & Devoirs</li>
+        </ol>
+        
+        <div class="card">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-lg-4">
+                        <h4 class="card-title">Search</h4>
+                        <p>Recherchez rapidement dans vos quiz et devoirs grâce à cette interface. Les colonnes peuvent être filtrées.</p>
+                    </div>
+                    <div class="col-lg-8">
+                        <div class="table-responsive border-bottom" data-toggle="lists"
+                            data-lists-values='["js-lists-values-type", "js-lists-values-title", "js-lists-values-date"]'>
+        
+                            <div class="search-form search-form--light mb-3">
+                                <input type="text" class="form-control search" placeholder="Search">
+                                <button class="btn" type="button" role="button"><i class="material-icons">search</i></button>
+                            </div>
+        
+                            <table class="table mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Type</th>
+                                        <th>Title</th>
+                                        <th style="width: 100px;">Date</th>
+                                        <th style="width: 24px;">Details</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="list" id="search">
+                                    {% for item in items %}
+                                    <tr>
+                                        <td><span class="js-lists-values-type">{{ item.type }}</span></td>
+                                        <td><span class="js-lists-values-title">{{ item.title }}</span></td>
+                                        <td><small class="text-muted js-lists-values-date">{{ item.date }}</small></td>
+                                        <td>
+                                            {% if item.type == 'Quiz' %}
+                                                <a href="{% url 'take-quiz' item.slug %}" class="btn btn-sm btn-primary">Commencer</a>
+                                            {% else %}
+                                                <a href="{% url 'take-devoir' item.slug %}" class="btn btn-sm btn-success">Commencer</a>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="container page__container">
+            <div class="footer">
+                Copyright &copy; 2024 - <a href="#">Votre Application</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}
+
+{% block script %}
+<script src="/static/assets/js/app.js"></script>
+
+<!-- List.js -->
+<script src="/static/assets/js/hljs.js"></script>
+<script src="/static/assets/js/app-settings.js"></script>
+<script src="/static/assets/vendor/list.min.js"></script>
+<script src="/static/assets/js/list.js"></script>
+
+<!-- Tables -->
+<script src="/static/assets/js/toggle-check-all.js"></script>
+<script src="/static/assets/js/check-selected-row.js"></script>
+{% endblock script %}
